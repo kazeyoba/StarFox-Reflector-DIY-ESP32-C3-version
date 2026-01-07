@@ -25,29 +25,42 @@ Ce projet permet de fabriquer une réplique lumineuse du **Réflecteur de Fox Mc
 
 ```mermaid
 graph TD
-    subgraph "Alimentation & Charge"
-    B[Batterie LiPo 3.7V] ---|Rouge +| B_Plus[TP4056: B+]
-    B ---|Noir -| B_Moins[TP4056: B-]
-    USB[Source USB-C] -.->|Charge| TP[TP4056]
+    %% Source d'énergie
+    subgraph "Système de Charge (TP4056)"
+        USB[Port USB-C] --- TP[Module TP4056]
+        B_POS[Batterie LiPo +] ---|Fil Rouge| TP_B_PLUS[Pastille B+]
+        B_NEG[Batterie LiPo -] ---|Fil Noir| TP_B_MOINS[Pastille B-]
     end
 
-    subgraph "Système & Contrôle"
-    OUT_M[TP4056: OUT-] ---|GND| ESP_GND[ESP32: GND]
-    OUT_M ---|GND| LED_GND[LED Ring: GND]
-    
-    OUT_P[TP4056: OUT+] ---|Ligne Rouge| SW[Interrupteur Slide]
-    SW ---|VCC| ESP_5V[ESP32: 5V/VBUS]
-    SW ---|VCC| LED_5V[LED Ring: 5V]
+    %% Coupure et Distribution
+    subgraph "Contrôle d'Alimentation"
+        TP_OUT_P[Pastille OUT+] ---|Fil Rouge| SW[Interrupteur Slide]
+        SW ---|Ligne Alimentée| VCC_JOIN{Point de soudure}
     end
 
-    subgraph "Signal Data"
-    D7[ESP32: GPIO 7] ---|Data| DIN[LED Ring: DI]
+    %% Composants Actifs
+    subgraph "Électronique & Lumière"
+        %% Alimentation Positive
+        VCC_JOIN ---|Fil Rouge| ESP_5V[ESP32-C3: Pin 5V/VBUS]
+        VCC_JOIN ---|Fil Rouge| LED_5V[LED Ring: Pin 5V]
+
+        %% Masse Commune (GND)
+        TP_OUT_M[Pastille OUT-] ---|Fil Noir| GND_JOIN{Point de soudure}
+        GND_JOIN ---|Fil Noir| ESP_GND[ESP32-C3: Pin GND]
+        GND_JOIN ---|Fil Noir| LED_GND[LED Ring: Pin GND]
+
+        %% Signal Data
+        ESP_D7[ESP32-C3: GPIO 7] ---|Fil de couleur| LED_DI[LED Ring: Pin DI]
     end
 
-    style B fill:#f96,stroke:#333
-    style SW fill:#dfd,stroke:#333
-    style TP fill:#bbf,stroke:#333
-
+    %% Styles
+    style USB fill:#f5f5f5,stroke:#333
+    style TP fill:#bbdefb,stroke:#000
+    style SW fill:#c8e6c9,stroke:#000
+    style B_POS fill:#ffccbc,stroke:#000
+    style B_NEG fill:#ffccbc,stroke:#000
+    style VCC_JOIN fill:#ff5252,stroke:#000
+    style GND_JOIN fill:#424242,stroke:#fff,color:#fff
 ```
 
 ## 💻 Code Source (Arduino IDE)
